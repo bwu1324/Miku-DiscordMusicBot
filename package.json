@@ -1,0 +1,45 @@
+{
+  "name": "miku-discordbot",
+  "version": "1.0.0",
+  "description": "Play music from yt and local files on discord",
+  "main": "miku.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node miku.js",
+    "lint": "eslint miku.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bwu1324/Miku-discordbot.git"
+  },
+  "keywords": [
+    "Discord",
+    "Music",
+    "Bot"
+  ],
+  "author": "Bennett Wu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bwu1324/Miku-discordbot/issues"
+  },
+  "homepage": "https://github.com/bwu1324/Miku-discordbot#readme",
+  "dependencies": {
+    "@discordjs/opus": "^0.3.2",
+    "canvas": "^2.6.1",
+    "discord.js": "^12.2.0",
+    "es-event-emitter": "^1.3.9",
+    "ffmpeg-static": "^4.2.2",
+    "fluent-ffmpeg": "^2.1.2",
+    "music-metadata": "^6.4.0",
+    "ytdl-core": "^3.1.1",
+    "ytsr": "^0.1.15"
+  },
+  "devDependencies": {
+    "eslint": "^7.2.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.21.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1"
+  }
+}
