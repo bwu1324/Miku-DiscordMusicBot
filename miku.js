@@ -134,7 +134,132 @@ async function upDateNowPlaying (paused) {
       )
 
     const temp = nowPlaying.message.channel.send(newMessage)
-    temp.then(function (message) { sentMessages.push(message) }).catch(console.error)
+    temp.then(function (message) {
+      sentMessages.push(message)
+      if (status.startsWith('[PAUSED]')) {
+        message.react('▶')
+          .then(() => message.react('⏹'))
+          .then(() => message.react('⏭'))
+          .then(function () {
+            const filter = (reaction, user) => {
+              return user.id !== message.author.id
+            }
+
+            const collector = message.createReactionCollector(filter, { max: 1 })
+
+            collector.on('collect', (reaction, user) => {
+              if (reaction.emoji.name === '▶') {
+                dispatcher.resume()
+                upDateNowPlaying()
+              } else if (reaction.emoji.name === '⏸') {
+                dispatcher.pause(true)
+                upDateNowPlaying(true)
+              } else if (reaction.emoji.name === '⏭') {
+                playNext()
+              } else if (reaction.emoji.name === '⏹') {
+                if (voiceChannel) {
+                  voiceChannel.leave()
+                }
+                if (dispatcher) {
+                  dispatcher.destroy()
+                  dispatcher = undefined
+                }
+
+                for (let i = 0; i < sentMessages.length; i++) {
+                  if (!sentMessages[i].deleted) {
+                    sentMessages[i].delete()
+                  }
+                }
+                for (let i = 0; i < ytSearchMessage.length; i++) {
+                  if (!ytSearchMessage[i].deleted) {
+                    for (let j = 0; j < ytSearchMessage[i].length; j++) {
+                      if (!ytSearchMessage[i][j].deleted) {
+                        ytSearchMessage[i][j].delete()
+                      }
+                    }
+                    ytSearchMessage[i].deleted = true
+                  }
+                }
+                for (let i = 0; i < showQueueMessage.length; i++) {
+                  if (!showQueueMessage[i].deleted) {
+                    showQueueMessage[i].delete()
+                  }
+                }
+
+                nowPlaying = undefined
+                connection = undefined
+                finishSong = false
+                finishQueue = false
+                voiceChannel = undefined
+                queue = []
+                sentMessages = []
+              }
+            })
+          })
+          .catch(console.error)
+      } else {
+        message.react('⏸')
+          .then(() => message.react('⏹'))
+          .then(() => message.react('⏭'))
+          .then(function () {
+            const filter = (reaction, user) => {
+              return user.id !== message.author.id
+            }
+
+            const collector = message.createReactionCollector(filter, { max: 1 })
+
+            collector.on('collect', (reaction, user) => {
+              if (reaction.emoji.name === '▶') {
+                dispatcher.resume()
+                upDateNowPlaying()
+              } else if (reaction.emoji.name === '⏸') {
+                dispatcher.pause(true)
+                upDateNowPlaying(true)
+              } else if (reaction.emoji.name === '⏭') {
+                playNext()
+              } else if (reaction.emoji.name === '⏹') {
+                if (voiceChannel) {
+                  voiceChannel.leave()
+                }
+                if (dispatcher) {
+                  dispatcher.destroy()
+                  dispatcher = undefined
+                }
+
+                for (let i = 0; i < sentMessages.length; i++) {
+                  if (!sentMessages[i].deleted) {
+                    sentMessages[i].delete()
+                  }
+                }
+                for (let i = 0; i < ytSearchMessage.length; i++) {
+                  if (!ytSearchMessage[i].deleted) {
+                    for (let j = 0; j < ytSearchMessage[i].length; j++) {
+                      if (!ytSearchMessage[i][j].deleted) {
+                        ytSearchMessage[i][j].delete()
+                      }
+                    }
+                    ytSearchMessage[i].deleted = true
+                  }
+                }
+                for (let i = 0; i < showQueueMessage.length; i++) {
+                  if (!showQueueMessage[i].deleted) {
+                    showQueueMessage[i].delete()
+                  }
+                }
+
+                nowPlaying = undefined
+                connection = undefined
+                finishSong = false
+                finishQueue = false
+                voiceChannel = undefined
+                queue = []
+                sentMessages = []
+              }
+            })
+          })
+          .catch(console.error)
+      }
+    }).catch(console.error)
     nowPlayingMessage.push(await temp)
   } else {
     let status = 'Now Playing - '
@@ -179,7 +304,132 @@ async function upDateNowPlaying (paused) {
       )
 
     const temp = lastCommand.channel.send(newMessage)
-    temp.then(function (message) { sentMessages.push(message) }).catch(console.error)
+    temp.then(function (message) {
+      sentMessages.push(message)
+      if (status.startsWith('[PAUSED]')) {
+        message.react('▶')
+          .then(() => message.react('⏹'))
+          .then(() => message.react('⏭'))
+          .then(function () {
+            const filter = (reaction, user) => {
+              return user.id !== message.author.id
+            }
+
+            const collector = message.createReactionCollector(filter, { max: 1 })
+
+            collector.on('collect', (reaction, user) => {
+              if (reaction.emoji.name === '▶') {
+                dispatcher.resume()
+                upDateNowPlaying()
+              } else if (reaction.emoji.name === '⏸') {
+                dispatcher.pause(true)
+                upDateNowPlaying(true)
+              } else if (reaction.emoji.name === '⏭') {
+                playNext()
+              } else if (reaction.emoji.name === '⏹') {
+                if (voiceChannel) {
+                  voiceChannel.leave()
+                }
+                if (dispatcher) {
+                  dispatcher.destroy()
+                  dispatcher = undefined
+                }
+
+                for (let i = 0; i < sentMessages.length; i++) {
+                  if (!sentMessages[i].deleted) {
+                    sentMessages[i].delete()
+                  }
+                }
+                for (let i = 0; i < ytSearchMessage.length; i++) {
+                  if (!ytSearchMessage[i].deleted) {
+                    for (let j = 0; j < ytSearchMessage[i].length; j++) {
+                      if (!ytSearchMessage[i][j].deleted) {
+                        ytSearchMessage[i][j].delete()
+                      }
+                    }
+                    ytSearchMessage[i].deleted = true
+                  }
+                }
+                for (let i = 0; i < showQueueMessage.length; i++) {
+                  if (!showQueueMessage[i].deleted) {
+                    showQueueMessage[i].delete()
+                  }
+                }
+
+                nowPlaying = undefined
+                connection = undefined
+                finishSong = false
+                finishQueue = false
+                voiceChannel = undefined
+                queue = []
+                sentMessages = []
+              }
+            })
+          })
+          .catch(console.error)
+      } else {
+        message.react('⏸')
+          .then(() => message.react('⏹'))
+          .then(() => message.react('⏭'))
+          .then(function () {
+            const filter = (reaction, user) => {
+              return user.id !== message.author.id
+            }
+
+            const collector = message.createReactionCollector(filter, { max: 1 })
+
+            collector.on('collect', (reaction, user) => {
+              if (reaction.emoji.name === '▶') {
+                dispatcher.resume()
+                upDateNowPlaying()
+              } else if (reaction.emoji.name === '⏸') {
+                dispatcher.pause(true)
+                upDateNowPlaying(true)
+              } else if (reaction.emoji.name === '⏭') {
+                playNext()
+              } else if (reaction.emoji.name === '⏹') {
+                if (voiceChannel) {
+                  voiceChannel.leave()
+                }
+                if (dispatcher) {
+                  dispatcher.destroy()
+                  dispatcher = undefined
+                }
+
+                for (let i = 0; i < sentMessages.length; i++) {
+                  if (!sentMessages[i].deleted) {
+                    sentMessages[i].delete()
+                  }
+                }
+                for (let i = 0; i < ytSearchMessage.length; i++) {
+                  if (!ytSearchMessage[i].deleted) {
+                    for (let j = 0; j < ytSearchMessage[i].length; j++) {
+                      if (!ytSearchMessage[i][j].deleted) {
+                        ytSearchMessage[i][j].delete()
+                      }
+                    }
+                    ytSearchMessage[i].deleted = true
+                  }
+                }
+                for (let i = 0; i < showQueueMessage.length; i++) {
+                  if (!showQueueMessage[i].deleted) {
+                    showQueueMessage[i].delete()
+                  }
+                }
+
+                nowPlaying = undefined
+                connection = undefined
+                finishSong = false
+                finishQueue = false
+                voiceChannel = undefined
+                queue = []
+                sentMessages = []
+              }
+            })
+          })
+          .catch(console.error)
+      }
+    }).catch(console.error)
     nowPlayingMessage.push(await temp)
   }
 }
@@ -469,7 +719,6 @@ function ytSearch (search, page) {
         nextpageRef: filter.ref
       }
       ytsr(null, options, async function (err, searchResults) {
-        console.log(searchResults)
         if (err) throw err
         const resultsMessage = []
         const newMessage1 = new Discord.MessageEmbed()
@@ -529,76 +778,75 @@ function ytSearch (search, page) {
             .then(() => last.react('4️⃣'))
             .then(() => last.react('5️⃣'))
             .then(() => last.react('❌'))
-            .catch(console.error)
-        } else if (page === 2) {
-          last.react('⬅')
-            .then(() => last.react('➡'))
-            .then(() => last.react('1️⃣'))
-            .then(() => last.react('2️⃣'))
-            .then(() => last.react('3️⃣'))
-            .then(() => last.react('4️⃣'))
-            .then(() => last.react('5️⃣'))
-            .then(() => last.react('❌'))
-            .catch(console.error)
-        } else if (page === 3) {
-          last.react('⬅')
-            .then(() => last.react('1️⃣'))
-            .then(() => last.react('2️⃣'))
-            .then(() => last.react('3️⃣'))
-            .then(() => last.react('4️⃣'))
-            .then(() => last.react('5️⃣'))
-            .then(() => last.react('❌'))
-            .catch(console.error)
-        }
-
-        setTimeout(function () {
-          for (let i = 0; i < resultsMessage.length; i++) {
-            if (!resultsMessage[i].deleted) {
-              resultsMessage[i].delete()
-            }
-          }
-        }, 60000)
-
-        const filter = (reaction, user) => {
-          return user.id !== last.author.id
-        }
-
-        const collector = last.createReactionCollector(filter, { max: 1, time: 60000 })
-
-        collector.on('collect', (reaction, user) => {
-          let choice
-          if (reaction.emoji.name === '1️⃣') {
-            choice = searchResults.items[0 + (page - 1) * 5]
-          } else if (reaction.emoji.name === '2️⃣') {
-            choice = searchResults.items[1 + (page - 1) * 5]
-          } else if (reaction.emoji.name === '3️⃣') {
-            choice = searchResults.items[2 + (page - 1) * 5]
-          } else if (reaction.emoji.name === '4️⃣') {
-            choice = searchResults.items[3 + (page - 1) * 5]
-          } else if (reaction.emoji.name === '5️⃣') {
-            choice = searchResults.items[4 + (page - 1) * 5]
-          } else if (reaction.emoji.name === '⬅') {
-            ytSearch(search, page - 1)
-          } else if (reaction.emoji.name === '➡') {
-            ytSearch(search, page + 1)
-          } else if (reaction.emoji.name === '❌') {
-            for (let i = 0; i < resultsMessage.length; i++) {
-              if (!resultsMessage[i].deleted) {
-                resultsMessage[i].delete()
+            .then(function () {
+              const filter = (reaction, user) => {
+                return user.id !== last.author.id
               }
-            }
-          }
-          if (choice) {
-            for (let i = 0; i < resultsMessage.length; i++) {
-              if (!resultsMessage[i].deleted) {
-                resultsMessage[i].delete()
-              }
-            }
 
-            if (!connection && !finishQueue) {
-              joinVoice(search).then(function () {
-                if (connection) {
-                  if (queue.length === 0 && !nowPlaying) {
+              const collector = last.createReactionCollector(filter, { max: 1, time: 60000 })
+
+              collector.on('collect', (reaction, user) => {
+                let choice
+                if (reaction.emoji.name === '1️⃣') {
+                  choice = searchResults.items[0 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '2️⃣') {
+                  choice = searchResults.items[1 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '3️⃣') {
+                  choice = searchResults.items[2 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '4️⃣') {
+                  choice = searchResults.items[3 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '5️⃣') {
+                  choice = searchResults.items[4 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '⬅') {
+                  ytSearch(search, page - 1)
+                } else if (reaction.emoji.name === '➡') {
+                  ytSearch(search, page + 1)
+                } else if (reaction.emoji.name === '❌') {
+                  for (let i = 0; i < resultsMessage.length; i++) {
+                    if (!resultsMessage[i].deleted) {
+                      resultsMessage[i].delete()
+                    }
+                  }
+                }
+                if (choice) {
+                  for (let i = 0; i < resultsMessage.length; i++) {
+                    if (!resultsMessage[i].deleted) {
+                      resultsMessage[i].delete()
+                    }
+                  }
+
+                  if (!connection && !finishQueue) {
+                    joinVoice(search).then(function () {
+                      if (connection) {
+                        if (queue.length === 0 && !nowPlaying) {
+                          nowPlaying = choice
+                          nowPlaying.message = search
+                          YTPlay(nowPlaying)
+                        } else {
+                          if (finishQueue) {
+                            const newMessage = new Discord.MessageEmbed()
+                              .setColor('#7289da')
+                              .setDescription('<@!' + search.author.id + '> Finish queue is set to true, disable it if you\'d like to add music to the queue')
+                            search.channel.send(newMessage).then(function (message) {
+                              sentMessages.push(message)
+                              setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
+                            }).catch(console.error)
+                          } else if (finishSong) {
+                            const newMessage = new Discord.MessageEmbed()
+                              .setColor('#7289da')
+                              .setDescription('<@!' + search.author.id + '> Finish song is set to true, disable it if you\'d like to add music to the queue')
+                            search.channel.send(newMessage).then(function (message) {
+                              sentMessages.push(message)
+                              setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
+                            }).catch(console.error)
+                          } else {
+                            search.content = settings.prefix + 'play ' + choice.link
+                            addYTQueue(search)
+                          }
+                        }
+                      }
+                    })
+                  } else if (queue.length === 0 && !nowPlaying) {
                     nowPlaying = choice
                     nowPlaying.message = search
                     YTPlay(nowPlaying)
@@ -621,39 +869,235 @@ function ytSearch (search, page) {
                       }).catch(console.error)
                     } else {
                       search.content = settings.prefix + 'play ' + choice.link
-                      addYTQueue(choice)
+                      addYTQueue(search)
                     }
                   }
                 }
               })
-            } else if (queue.length === 0 && !nowPlaying) {
-              nowPlaying = choice
-              nowPlaying.message = search
-              YTPlay(nowPlaying)
-            } else {
-              if (finishQueue) {
-                const newMessage = new Discord.MessageEmbed()
-                  .setColor('#7289da')
-                  .setDescription('<@!' + search.author.id + '> Finish queue is set to true, disable it if you\'d like to add music to the queue')
-                search.channel.send(newMessage).then(function (message) {
-                  sentMessages.push(message)
-                  setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
-                }).catch(console.error)
-              } else if (finishSong) {
-                const newMessage = new Discord.MessageEmbed()
-                  .setColor('#7289da')
-                  .setDescription('<@!' + search.author.id + '> Finish song is set to true, disable it if you\'d like to add music to the queue')
-                search.channel.send(newMessage).then(function (message) {
-                  sentMessages.push(message)
-                  setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
-                }).catch(console.error)
-              } else {
-                search.content = settings.prefix + 'play ' + choice.link
-                addYTQueue(choice)
+            })
+            .catch(console.error)
+        } else if (page === 2) {
+          last.react('⬅')
+            .then(() => last.react('➡'))
+            .then(() => last.react('1️⃣'))
+            .then(() => last.react('2️⃣'))
+            .then(() => last.react('3️⃣'))
+            .then(() => last.react('4️⃣'))
+            .then(() => last.react('5️⃣'))
+            .then(() => last.react('❌'))
+            .then(function () {
+              const filter = (reaction, user) => {
+                return user.id !== last.author.id
               }
+
+              const collector = last.createReactionCollector(filter, { max: 1, time: 60000 })
+
+              collector.on('collect', (reaction, user) => {
+                let choice
+                if (reaction.emoji.name === '1️⃣') {
+                  choice = searchResults.items[0 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '2️⃣') {
+                  choice = searchResults.items[1 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '3️⃣') {
+                  choice = searchResults.items[2 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '4️⃣') {
+                  choice = searchResults.items[3 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '5️⃣') {
+                  choice = searchResults.items[4 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '⬅') {
+                  ytSearch(search, page - 1)
+                } else if (reaction.emoji.name === '➡') {
+                  ytSearch(search, page + 1)
+                } else if (reaction.emoji.name === '❌') {
+                  for (let i = 0; i < resultsMessage.length; i++) {
+                    if (!resultsMessage[i].deleted) {
+                      resultsMessage[i].delete()
+                    }
+                  }
+                }
+                if (choice) {
+                  for (let i = 0; i < resultsMessage.length; i++) {
+                    if (!resultsMessage[i].deleted) {
+                      resultsMessage[i].delete()
+                    }
+                  }
+
+                  if (!connection && !finishQueue) {
+                    joinVoice(search).then(function () {
+                      if (connection) {
+                        if (queue.length === 0 && !nowPlaying) {
+                          nowPlaying = choice
+                          nowPlaying.message = search
+                          YTPlay(nowPlaying)
+                        } else {
+                          if (finishQueue) {
+                            const newMessage = new Discord.MessageEmbed()
+                              .setColor('#7289da')
+                              .setDescription('<@!' + search.author.id + '> Finish queue is set to true, disable it if you\'d like to add music to the queue')
+                            search.channel.send(newMessage).then(function (message) {
+                              sentMessages.push(message)
+                              setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
+                            }).catch(console.error)
+                          } else if (finishSong) {
+                            const newMessage = new Discord.MessageEmbed()
+                              .setColor('#7289da')
+                              .setDescription('<@!' + search.author.id + '> Finish song is set to true, disable it if you\'d like to add music to the queue')
+                            search.channel.send(newMessage).then(function (message) {
+                              sentMessages.push(message)
+                              setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
+                            }).catch(console.error)
+                          } else {
+                            search.content = settings.prefix + 'play ' + choice.link
+                            addYTQueue(search)
+                          }
+                        }
+                      }
+                    })
+                  } else if (queue.length === 0 && !nowPlaying) {
+                    nowPlaying = choice
+                    nowPlaying.message = search
+                    YTPlay(nowPlaying)
+                  } else {
+                    if (finishQueue) {
+                      const newMessage = new Discord.MessageEmbed()
+                        .setColor('#7289da')
+                        .setDescription('<@!' + search.author.id + '> Finish queue is set to true, disable it if you\'d like to add music to the queue')
+                      search.channel.send(newMessage).then(function (message) {
+                        sentMessages.push(message)
+                        setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
+                      }).catch(console.error)
+                    } else if (finishSong) {
+                      const newMessage = new Discord.MessageEmbed()
+                        .setColor('#7289da')
+                        .setDescription('<@!' + search.author.id + '> Finish song is set to true, disable it if you\'d like to add music to the queue')
+                      search.channel.send(newMessage).then(function (message) {
+                        sentMessages.push(message)
+                        setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
+                      }).catch(console.error)
+                    } else {
+                      search.content = settings.prefix + 'play ' + choice.link
+                      addYTQueue(search)
+                    }
+                  }
+                }
+              })
+            })
+            .catch(console.error)
+        } else if (page === 3) {
+          last.react('⬅')
+            .then(() => last.react('1️⃣'))
+            .then(() => last.react('2️⃣'))
+            .then(() => last.react('3️⃣'))
+            .then(() => last.react('4️⃣'))
+            .then(() => last.react('5️⃣'))
+            .then(() => last.react('❌'))
+            .then(function () {
+              const filter = (reaction, user) => {
+                return user.id !== last.author.id
+              }
+
+              const collector = last.createReactionCollector(filter, { max: 1, time: 60000 })
+
+              collector.on('collect', (reaction, user) => {
+                let choice
+                if (reaction.emoji.name === '1️⃣') {
+                  choice = searchResults.items[0 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '2️⃣') {
+                  choice = searchResults.items[1 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '3️⃣') {
+                  choice = searchResults.items[2 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '4️⃣') {
+                  choice = searchResults.items[3 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '5️⃣') {
+                  choice = searchResults.items[4 + (page - 1) * 5]
+                } else if (reaction.emoji.name === '⬅') {
+                  ytSearch(search, page - 1)
+                } else if (reaction.emoji.name === '➡') {
+                  ytSearch(search, page + 1)
+                } else if (reaction.emoji.name === '❌') {
+                  for (let i = 0; i < resultsMessage.length; i++) {
+                    if (!resultsMessage[i].deleted) {
+                      resultsMessage[i].delete()
+                    }
+                  }
+                }
+                if (choice) {
+                  for (let i = 0; i < resultsMessage.length; i++) {
+                    if (!resultsMessage[i].deleted) {
+                      resultsMessage[i].delete()
+                    }
+                  }
+
+                  if (!connection && !finishQueue) {
+                    joinVoice(search).then(function () {
+                      if (connection) {
+                        if (queue.length === 0 && !nowPlaying) {
+                          nowPlaying = choice
+                          nowPlaying.message = search
+                          YTPlay(nowPlaying)
+                        } else {
+                          if (finishQueue) {
+                            const newMessage = new Discord.MessageEmbed()
+                              .setColor('#7289da')
+                              .setDescription('<@!' + search.author.id + '> Finish queue is set to true, disable it if you\'d like to add music to the queue')
+                            search.channel.send(newMessage).then(function (message) {
+                              sentMessages.push(message)
+                              setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
+                            }).catch(console.error)
+                          } else if (finishSong) {
+                            const newMessage = new Discord.MessageEmbed()
+                              .setColor('#7289da')
+                              .setDescription('<@!' + search.author.id + '> Finish song is set to true, disable it if you\'d like to add music to the queue')
+                            search.channel.send(newMessage).then(function (message) {
+                              sentMessages.push(message)
+                              setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
+                            }).catch(console.error)
+                          } else {
+                            search.content = settings.prefix + 'play ' + choice.link
+                            addYTQueue(search)
+                          }
+                        }
+                      }
+                    })
+                  } else if (queue.length === 0 && !nowPlaying) {
+                    nowPlaying = choice
+                    nowPlaying.message = search
+                    YTPlay(nowPlaying)
+                  } else {
+                    if (finishQueue) {
+                      const newMessage = new Discord.MessageEmbed()
+                        .setColor('#7289da')
+                        .setDescription('<@!' + search.author.id + '> Finish queue is set to true, disable it if you\'d like to add music to the queue')
+                      search.channel.send(newMessage).then(function (message) {
+                        sentMessages.push(message)
+                        setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
+                      }).catch(console.error)
+                    } else if (finishSong) {
+                      const newMessage = new Discord.MessageEmbed()
+                        .setColor('#7289da')
+                        .setDescription('<@!' + search.author.id + '> Finish song is set to true, disable it if you\'d like to add music to the queue')
+                      search.channel.send(newMessage).then(function (message) {
+                        sentMessages.push(message)
+                        setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
+                      }).catch(console.error)
+                    } else {
+                      search.content = settings.prefix + 'play ' + choice.link
+                      addYTQueue(search)
+                    }
+                  }
+                }
+              })
+            })
+            .catch(console.error)
+        }
+
+        setTimeout(function () {
+          for (let i = 0; i < resultsMessage.length; i++) {
+            if (!resultsMessage[i].deleted) {
+              resultsMessage[i].delete()
             }
           }
-        })
+        }, 60000)
       })
     })
   })
@@ -700,36 +1144,102 @@ async function showQueue (request, page) {
     if (page === 1 && Math.ceil((autoplayQueue.length + queue.length) / 20) > 1) {
       message.react('➡')
         .then(() => message.react('❌'))
+        .then(function () {
+          const filter = (reaction, user) => {
+            return user.id !== message.author.id
+          }
+
+          const collector = message.createReactionCollector(filter, { max: 1, time: 60000 })
+
+          collector.on('collect', (reaction, user) => {
+            if (reaction.emoji.name === '⬅') {
+              showQueue(request, page - 1)
+            } else if (reaction.emoji.name === '➡') {
+              showQueue(request, page + 1)
+            } else if (reaction.emoji.name === '❌') {
+              for (let i = 0; i < showQueueMessage.length; i++) {
+                if (!showQueueMessage[i].deleted) {
+                  showQueueMessage[i].delete()
+                }
+              }
+            }
+          })
+        })
     } else if (page === 1) {
       message.react('❌')
+        .then(function () {
+          const filter = (reaction, user) => {
+            return user.id !== message.author.id
+          }
+
+          const collector = message.createReactionCollector(filter, { max: 1, time: 60000 })
+
+          collector.on('collect', (reaction, user) => {
+            if (reaction.emoji.name === '⬅') {
+              showQueue(request, page - 1)
+            } else if (reaction.emoji.name === '➡') {
+              showQueue(request, page + 1)
+            } else if (reaction.emoji.name === '❌') {
+              for (let i = 0; i < showQueueMessage.length; i++) {
+                if (!showQueueMessage[i].deleted) {
+                  showQueueMessage[i].delete()
+                }
+              }
+            }
+          })
+        })
     } else if (page * 20 <= queue.length + autoplayQueue.length) {
       message.react('⬅')
         .then(() => message.react('➡'))
         .then(() => message.react('❌'))
+        .then(function () {
+          const filter = (reaction, user) => {
+            return user.id !== message.author.id
+          }
+
+          const collector = message.createReactionCollector(filter, { max: 1, time: 60000 })
+
+          collector.on('collect', (reaction, user) => {
+            if (reaction.emoji.name === '⬅') {
+              showQueue(request, page - 1)
+            } else if (reaction.emoji.name === '➡') {
+              showQueue(request, page + 1)
+            } else if (reaction.emoji.name === '❌') {
+              for (let i = 0; i < showQueueMessage.length; i++) {
+                if (!showQueueMessage[i].deleted) {
+                  showQueueMessage[i].delete()
+                }
+              }
+            }
+          })
+        })
+        .catch(console.error)
     } else {
       message.react('⬅')
         .then(() => message.react('❌'))
-    }
-
-    const filter = (reaction, user) => {
-      return user.id !== message.author.id
-    }
-
-    const collector = message.createReactionCollector(filter, { max: 1, time: 60000 })
-
-    collector.on('collect', (reaction, user) => {
-      if (reaction.emoji.name === '⬅') {
-        showQueue(request, page - 1)
-      } else if (reaction.emoji.name === '➡') {
-        showQueue(request, page + 1)
-      } else if (reaction.emoji.name === '❌') {
-        for (let i = 0; i < showQueueMessage.length; i++) {
-          if (!showQueueMessage[i].deleted) {
-            showQueueMessage[i].delete()
+        .then(function () {
+          const filter = (reaction, user) => {
+            return user.id !== message.author.id
           }
-        }
-      }
-    })
+
+          const collector = message.createReactionCollector(filter, { max: 1, time: 60000 })
+
+          collector.on('collect', (reaction, user) => {
+            if (reaction.emoji.name === '⬅') {
+              showQueue(request, page - 1)
+            } else if (reaction.emoji.name === '➡') {
+              showQueue(request, page + 1)
+            } else if (reaction.emoji.name === '❌') {
+              for (let i = 0; i < showQueueMessage.length; i++) {
+                if (!showQueueMessage[i].deleted) {
+                  showQueueMessage[i].delete()
+                }
+              }
+            }
+          })
+        })
+        .catch(console.error)
+    }
   }).catch(console.error)
 }
 
@@ -884,7 +1394,7 @@ client.on('message', async function (message) {
         upDateNowPlaying(false)
         dispatcher.resume(true)
       }
-    } else if (message.content.startsWith(settings.prefix + 'skip')) {
+    } else if (message.content.startsWith(settings.prefix + 'skip') || message.content.startsWith(settings.prefix + 'next')) {
       if (!dispatcher) {
         const newMessage = new Discord.MessageEmbed()
           .setColor('#7289da')
@@ -1051,7 +1561,6 @@ client.on('message', async function (message) {
         sentMessages.push(message)
         setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
       }).catch(console.error)
-      upDateNowPlaying()
     } else if (message.content.startsWith(settings.prefix + 'toggle finish queue')) {
       finishQueue = !finishQueue
       const newMessage = new Discord.MessageEmbed()
@@ -1061,12 +1570,10 @@ client.on('message', async function (message) {
         sentMessages.push(message)
         setTimeout(function () { if (!message.deleted) { message.delete() } }, 60000)
       }).catch(console.error)
-      upDateNowPlaying()
     } else if (message.content.startsWith(settings.prefix + 'search ')) {
       ytSearch(message, 1)
     } else if (message.content.startsWith(settings.prefix + 'show queue ')) {
       const page = parseInt(message.content.replace(settings.prefix + 'show queue ', ''))
-      console.log(page)
       if (!page) {
         const newMessage = new Discord.MessageEmbed()
           .setColor('#7289da')
@@ -1090,15 +1597,18 @@ client.on('message', async function (message) {
         '**"' + settings.prefix + 'start autoplay"**\nBot will begin playing from the autoplay folder if autoplay is enabled.\n\n' +
         '**"' + settings.prefix + 'pause"**\nPauses what the bot is playing.\n\n' +
         '**"' + settings.prefix + 'resume"**\nResumes what was paused.\n\n' +
-        '**"' + settings.prefix + 'skip"**\nSkips the current song and moves onto the next song in the queue.\n\n' +
+        '**"' + settings.prefix + 'skip" or "' + settings.prefix + 'next"**\nSkips the current song and moves onto the next song in the queue.\n\n' +
         '**"' + settings.prefix + 'remove [youtube query]"**\nSearches youtube and removes the first thing in the queue that matches the first search result.\n\n' +
         '**"' + settings.prefix + 'clear queue"**\nBot will clear the current queue.\n\n' +
         '**"' + settings.prefix + 'stop"**\nImmediately stops playing, clears the queue, and leaves the voice channel.\n\n' +
         '**"' + settings.prefix + 'toggle finish song"**\nToggles whether or not the bot will finish playing the current song then leave. New requests will not be honored when true.\n\n' +
         '**"' + settings.prefix + 'toggle finish queue"**\nToggles whether or not the bot will finish playing the queue then leave. New requests will not be honored when true.\n\n' +
         '**"' + settings.prefix + 'toggle autoplay"**\nToggles whether or not bot will play songs from the autoplay folder when queue is empty. When disabled, bot will automatically leave after 60 seconds when queue is empty.\n\n' +
-        '**"' + settings.prefix + 'set channel"**\nBot sets the channel the bot will listen to. Bot will notify users if they try to user a different channel.\n\n')
+        '**"' + settings.prefix + 'set channel"**\nBot sets the channel the bot will listen to. Bot will notify users if they try to user a different channel.\n\n' +
+        '**"' + settings.prefix + 'clear channel"**\nBot will delete that last 100 messages in the channel')
       client.users.cache.get(message.author.id).send(newMessage)
+    } else if (message.content.startsWith(settings.prefix + 'clear channel')) {
+      message.channel.bulkDelete(100).catch(console.error)
     } else {
       const newMessage = new Discord.MessageEmbed()
         .setColor('#7289da')
