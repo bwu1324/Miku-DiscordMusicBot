@@ -488,13 +488,11 @@ function YTPlay (play) {
 
   dispatcher.on('start', function () {
     upDateNowPlaying()
-    console.log('Started playing ' + play.title)
   })
 
   dispatcher.on('finish', () => {
     nowPlaying = undefined
     dispatcher.destroy()
-    console.log('Finished playing ' + play.title)
     playNext()
   })
 }
@@ -504,13 +502,11 @@ function autoPlay (play) {
 
   dispatcher.on('start', function () {
     upDateNowPlaying()
-    console.log('Started playing ' + play.common.title)
   })
 
   dispatcher.on('finish', () => {
     nowPlaying = undefined
     dispatcher.destroy()
-    console.log('Finished playing ' + play.common.title)
     playNext()
   })
 }
