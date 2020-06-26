@@ -89,6 +89,7 @@ function player (play) {
   }
 
   dispatcher.on('start', function () {
+    paused = false
     displayQueue.push({ type: 'nowPlaying', request: play.message })
   })
 
