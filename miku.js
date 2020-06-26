@@ -374,7 +374,7 @@ function search (page, request) {
                     player(nowPlaying)
                   } else {
                     queue.push(choice)
-                    displayQueue.push({ type: 'notification', request: message, message: '<@!' + results.items[0].message.author.id + '> Added ' + results.items[0].title + ' to the queue' })
+                    displayQueue.push({ type: 'notification', request: message, message: '<@!' + choice.message.author.id + '> Added ' + results.items[0].title + ' to the queue' })
                     displayQueue.push({ type: 'nowPlaying', request: message })
                   }
                 }
