@@ -761,5 +761,7 @@ client.on('message', async function (message) {
         displayQueue.push({ type: 'notification', request: message, message: '<@!' + message.author.id + '> Deleted ' + number + ' messages' })
       })
     }
+  } else {
+    displayQueue.push({ type: 'error', request: message, message: '<@!' + message.author.id + '> That is not a valid command. Type "' + settings.prefix + 'help" to show the list of avaliable commands.' })
   }
 })
