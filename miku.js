@@ -89,7 +89,7 @@ function player (play) {
   }
 
   dispatcher.on('start', function () {
-    paused = false
+paused = false
     displayQueue.push({ type: 'nowPlaying', request: play.message })
   })
 
@@ -667,21 +667,36 @@ client.on('message', async function (message) {
   } else if (message.content === 'stop' || message.content === 'commit seppuku') {
     displayQueue.push({ type: 'stop' })
   } else if (message.content.startsWith('remove ')) {
-    let found = false
-    searchYT(message, 1).then(function (results) {
-      for (let i = 0; i < queue.length; i++) {
-        if (queue[i].link === results.items[0].link && !found) {
-          queue.splice(i, 1)
-          found = true
+    message.content = message.content.replace('remove ', '')
+    const index = parseInt(message.content)
+    if (!index) {
+      let found = false
+      searchYT(message, 1).then(function (results) {
+        for (let i = 0; i < queue.length; i++) {
+          if (queue[i].link === results.items[0].link && !found) {
+            queue.splice(i, 1)
+            found = true
+          }
         }
-      }
-      if (!found) {
-        displayQueue.push({ type: 'error', request: message, message: '<@!' + message.author.id + '> Couldn\'t find "' + message.content.replace('remove', '') + '" in the queue' })
+        if (!found) {
+          displayQueue.push({ type: 'error', request: message, message: '<@!' + message.author.id + '> Couldn\'t find "' + message.content.replace('remove', '') + '" in the queue' })
+        } else {
+          displayQueue.push({ type: 'notification', request: message, message: '<@!' + message.author.id + '> Removed "' + results.items[0].title + '" from the queue' })
+          displayQueue.push({ type: 'nowPlaying', request: message })
+        }
+      })
+    } else if (index > queue.length + autoplayQueue.length) {
+      displayQueue.push({ type: 'error', request: message, message: '<@!' + message.author.id + '> The queue is not that long' })
+    } else {
+      if (index <= queue.length) {
+        displayQueue.push({ type: 'notification', request: message, message: '<@!' + message.author.id + '> Removed "' + queue[index - 1].title + '" from the queue' })
+        queue.splice(index - 1, 1)
       } else {
-        displayQueue.push({ type: 'notification', request: message, message: '<@!' + message.author.id + '> Removed "' + results.items[0].title + '" from the queue' })
-        displayQueue.push({ type: 'nowPlaying', request: message })
+        displayQueue.push({ type: 'notification', request: message, message: '<@!' + message.author.id + '> Removed "' + autoplayQueue[index - queue.length - 1].title + '" from the queue' })
+        autoplayQueue.splice(index - queue.length - 1, 1)
       }
-    })
+      displayQueue.push({ type: 'nowPlaying', request: message })
+    }
   } else if (message.content.startsWith('advance ')) {
     message.content = message.content.replace('advance ', '')
     const index = parseInt(message.content)
@@ -744,7 +759,7 @@ client.on('message', async function (message) {
       '**"' + settings.prefix + 'pause"**\nPauses what the bot is playing.\n\n' +
       '**"' + settings.prefix + 'resume"**\nResumes what was paused.\n\n' +
       '**"' + settings.prefix + 'skip" or "' + settings.prefix + 'next"**\nSkips the current song and moves onto the next song in the queue.\n\n' +
-      '**"' + settings.prefix + 'remove [youtube query]"**\nSearches youtube and removes the first thing in the queue that matches the first search result.\n\n' +
+      '**"' + settings.prefix + 'remove [youtube query or queue index]"**\nSearches youtube and removes the first thing in the queue that matches the first ' + 'search result or removes the coresponding index in the queue\n\n' +
       '**"' + settings.prefix + 'advance [queue index]"**\nMoves the corresponding song in the queue to the top.\n\n' +
       '**"' + settings.prefix + 'clear queue"**\nBot will clear the current queue.\n\n' +
       '**"' + settings.prefix + 'stop"**\nImmediately stops playing, clears the queue, and leaves the voice channel.\n\n' +
