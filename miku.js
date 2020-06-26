@@ -526,7 +526,9 @@ function display (type, request, message) {
     finishSong = false
     finishQueue = false
     queue = []
-    voiceChannel.leave()
+    if (voiceChannel) {
+      voiceChannel.leave()
+    }
     voiceChannel = undefined
     connection = undefined
     if (dispatcher) {
@@ -627,11 +629,13 @@ client.on('message', async function (message) {
         joinVoice(message).then(function (connected) {
           if (connected) {
             autoplayQueue[0].message = message
+            nowPlaying = autoplayQueue[0]
             playNext()
           }
         })
       } else if (!nowPlaying) {
         autoplayQueue[0].message = message
+        nowPlaying = autoplayQueue[0]
         playNext()
       } else {
         displayQueue.push({ type: 'error', request: message, message: '<@!' + message.author.id + '> Something is alreading playing' })
