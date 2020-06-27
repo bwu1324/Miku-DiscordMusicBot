@@ -281,6 +281,18 @@ function search (page, request) {
           newMessage.setFooter('Page ' + page + ' out of ' + pages)
           request.channel.send(newMessage).then(function (message) {
             searchMessages.push(message)
+            setTimeout(function () { 
+              if (!message.deleted) { 
+                for (let i = 0; i < searchMessages.length; i++) {
+                  if (!searchMessages[i].deleted) {
+                    if (searchMessages[i].collector) {
+                      searchMessages[i].collector.stop()
+                    }
+                    searchMessages[i].delete()
+                  }
+                }
+              }
+            }, 60000)
             if (results.items.length > upTo && page === 1) {
               message.react('➡')
                 .then(() => message.react('1️⃣'))
