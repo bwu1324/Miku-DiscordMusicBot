@@ -89,6 +89,7 @@ function player (play) {
   }
 
   dispatcher.on('start', function () {
+paused = false
     displayQueue.push({ type: 'nowPlaying', request: play.message })
   })
 
@@ -250,6 +251,7 @@ function upDateNowPlaying (newMessage, request) {
       })
     }
   })
+  if (autoplayQueue.length < 10 && settings.autoplay ) { autoplayInit() }
 }
 
 function search (page, request) {
@@ -280,6 +282,18 @@ function search (page, request) {
           newMessage.setFooter('Page ' + page + ' out of ' + pages)
           request.channel.send(newMessage).then(function (message) {
             searchMessages.push(message)
+            setTimeout(function () {
+              if (!message.deleted) {
+                for (let i = 0; i < searchMessages.length; i++) {
+                  if (!searchMessages[i].deleted) {
+                    if (searchMessages[i].collector) {
+                      searchMessages[i].collector.stop()
+                    }
+                    searchMessages[i].delete()
+                  }
+                }
+              }
+            }, 60000)
             if (results.items.length > upTo && page === 1) {
               message.react('➡')
                 .then(() => message.react('1️⃣'))
@@ -373,7 +387,7 @@ function search (page, request) {
                     player(nowPlaying)
                   } else {
                     queue.push(choice)
-                    displayQueue.push({ type: 'notification', request: message, message: '<@!' + results.items[0].message.author.id + '> Added ' + results.items[0].title + ' to the queue' })
+                    displayQueue.push({ type: 'notification', request: message, message: '<@!' + choice.message.author.id + '> Added ' + results.items[0].title + ' to the queue' })
                     displayQueue.push({ type: 'nowPlaying', request: message })
                   }
                 }
@@ -526,7 +540,9 @@ function display (type, request, message) {
     finishSong = false
     finishQueue = false
     queue = []
-    voiceChannel.leave()
+    if (voiceChannel) {
+      voiceChannel.leave()
+    }
     voiceChannel = undefined
     connection = undefined
     if (dispatcher) {
@@ -627,11 +643,13 @@ client.on('message', async function (message) {
         joinVoice(message).then(function (connected) {
           if (connected) {
             autoplayQueue[0].message = message
+            nowPlaying = autoplayQueue[0]
             playNext()
           }
         })
       } else if (!nowPlaying) {
         autoplayQueue[0].message = message
+        nowPlaying = autoplayQueue[0]
         playNext()
       } else {
         displayQueue.push({ type: 'error', request: message, message: '<@!' + message.author.id + '> Something is alreading playing' })
@@ -662,21 +680,36 @@ client.on('message', async function (message) {
   } else if (message.content === 'stop' || message.content === 'commit seppuku') {
     displayQueue.push({ type: 'stop' })
   } else if (message.content.startsWith('remove ')) {
-    let found = false
-    searchYT(message, 1).then(function (results) {
-      for (let i = 0; i < queue.length; i++) {
-        if (queue[i].link === results.items[0].link && !found) {
-          queue.splice(i, 1)
-          found = true
+    message.content = message.content.replace('remove ', '')
+    const index = parseInt(message.content)
+    if (!index) {
+      let found = false
+      searchYT(message, 1).then(function (results) {
+        for (let i = 0; i < queue.length; i++) {
+          if (queue[i].link === results.items[0].link && !found) {
+            queue.splice(i, 1)
+            found = true
+          }
         }
-      }
-      if (!found) {
-        displayQueue.push({ type: 'error', request: message, message: '<@!' + message.author.id + '> Couldn\'t find "' + message.content.replace('remove', '') + '" in the queue' })
+        if (!found) {
+          displayQueue.push({ type: 'error', request: message, message: '<@!' + message.author.id + '> Couldn\'t find "' + message.content.replace('remove', '') + '" in the queue' })
+        } else {
+          displayQueue.push({ type: 'notification', request: message, message: '<@!' + message.author.id + '> Removed "' + results.items[0].title + '" from the queue' })
+          displayQueue.push({ type: 'nowPlaying', request: message })
+        }
+      })
+    } else if (index > queue.length + autoplayQueue.length) {
+      displayQueue.push({ type: 'error', request: message, message: '<@!' + message.author.id + '> The queue is not that long' })
+    } else {
+      if (index <= queue.length) {
+        displayQueue.push({ type: 'notification', request: message, message: '<@!' + message.author.id + '> Removed "' + queue[index - 1].title + '" from the queue' })
+        queue.splice(index - 1, 1)
       } else {
-        displayQueue.push({ type: 'notification', request: message, message: '<@!' + message.author.id + '> Removed "' + results.items[0].title + '" from the queue' })
-        displayQueue.push({ type: 'nowPlaying', request: message })
+        displayQueue.push({ type: 'notification', request: message, message: '<@!' + message.author.id + '> Removed "' + autoplayQueue[index - queue.length - 1].title + '" from the queue' })
+        autoplayQueue.splice(index - queue.length - 1, 1)
       }
-    })
+      displayQueue.push({ type: 'nowPlaying', request: message })
+    }
   } else if (message.content.startsWith('advance ')) {
     message.content = message.content.replace('advance ', '')
     const index = parseInt(message.content)
@@ -739,7 +772,7 @@ client.on('message', async function (message) {
       '**"' + settings.prefix + 'pause"**\nPauses what the bot is playing.\n\n' +
       '**"' + settings.prefix + 'resume"**\nResumes what was paused.\n\n' +
       '**"' + settings.prefix + 'skip" or "' + settings.prefix + 'next"**\nSkips the current song and moves onto the next song in the queue.\n\n' +
-      '**"' + settings.prefix + 'remove [youtube query]"**\nSearches youtube and removes the first thing in the queue that matches the first search result.\n\n' +
+      '**"' + settings.prefix + 'remove [youtube query or queue index]"**\nSearches youtube and removes the first thing in the queue that matches the first ' + 'search result or removes the coresponding index in the queue\n\n' +
       '**"' + settings.prefix + 'advance [queue index]"**\nMoves the corresponding song in the queue to the top.\n\n' +
       '**"' + settings.prefix + 'clear queue"**\nBot will clear the current queue.\n\n' +
       '**"' + settings.prefix + 'stop"**\nImmediately stops playing, clears the queue, and leaves the voice channel.\n\n' +
@@ -761,5 +794,7 @@ client.on('message', async function (message) {
         displayQueue.push({ type: 'notification', request: message, message: '<@!' + message.author.id + '> Deleted ' + number + ' messages' })
       })
     }
+  } else {
+    displayQueue.push({ type: 'error', request: message, message: '<@!' + message.author.id + '> That is not a valid command. Type "' + settings.prefix + 'help" to show the list of avaliable commands.' })
   }
 })
