@@ -323,8 +323,7 @@ function search (page, request) {
                 .then(() => message.react('❌'))
                 .then(() => searchAwaitReact())
             } else {
-              message.react('⬅')
-                .then(() => message.react('1️⃣'))
+              message.react('1️⃣'))
                 .then(() => { if (upTo >= (page - 1) * 5 + 2) { message.react('2️⃣') } })
                 .then(() => { if (upTo >= (page - 1) * 5 + 3) { message.react('3️⃣') } })
                 .then(() => { if (upTo >= (page - 1) * 5 + 4) { message.react('4️⃣') } })
