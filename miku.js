@@ -89,7 +89,7 @@ function player (play) {
   }
 
   dispatcher.on('start', function () {
-paused = false
+    paused = false
     displayQueue.push({ type: 'nowPlaying', request: play.message })
   })
 
@@ -100,6 +100,7 @@ paused = false
 
 function playNext () {
   const message = nowPlaying.message
+  nowPlaying = undefined
   if (dispatcher) {
     dispatcher.destroy()
   }
@@ -120,6 +121,7 @@ function playNext () {
       nowPlaying = autoplayQueue[0]
       autoplayQueue.shift()
     } else {
+      displayQueue.push({ type: 'nowPlaying', request: nowPlaying.message })
       displayQueue.push({ type: 'notification', request: message, message: 'Nothing to play, leaving voice channel in 60 seconds' })
       setTimeout(function () {
         if (!nowPlaying) {
@@ -251,7 +253,7 @@ function upDateNowPlaying (newMessage, request) {
       })
     }
   })
-  if (autoplayQueue.length < 10 && settings.autoplay ) { autoplayInit() }
+  if (autoplayQueue.length < 10 && settings.autoplay) { autoplayInit() }
 }
 
 function search (page, request) {
@@ -276,7 +278,7 @@ function search (page, request) {
           )
           .setThumbnail(results.items[i].thumbnail)
         if (i === (page - 1) * 5) {
-          newMessage.setTitle('Search Results for' + results.query)
+          newMessage.setTitle('Search Results for "' + results.query + '"')
         }
         if (i === upTo - 1) {
           newMessage.setFooter('Page ' + page + ' out of ' + pages)
@@ -323,7 +325,7 @@ function search (page, request) {
                 .then(() => message.react('❌'))
                 .then(() => searchAwaitReact())
             } else {
-              message.react('1️⃣'))
+              message.react('1️⃣')
                 .then(() => { if (upTo >= (page - 1) * 5 + 2) { message.react('2️⃣') } })
                 .then(() => { if (upTo >= (page - 1) * 5 + 3) { message.react('3️⃣') } })
                 .then(() => { if (upTo >= (page - 1) * 5 + 4) { message.react('4️⃣') } })
@@ -447,9 +449,12 @@ function showQueue (newMessage, page, request) {
         message.react('➡')
           .then(() => message.react('❌'))
           .then(() => showQueueMessageAwaitReact())
-      } else if (page === Math.ceil((autoplayQueue.length + queue.length) / 20)) {
+      } else if (page === Math.ceil((autoplayQueue.length + queue.length) / 20) && Math.ceil((autoplayQueue.length + queue.length) / 20) !== 1) {
         message.react('⬅')
           .then(() => message.react('❌'))
+          .then(() => showQueueMessageAwaitReact())
+      } else if (Math.ceil((autoplayQueue.length + queue.length) / 20) === 1) {
+        message.react('❌')
           .then(() => showQueueMessageAwaitReact())
       } else if (page < Math.ceil((autoplayQueue.length + queue.length) / 20)) {
         message.react('⬅')
@@ -761,6 +766,7 @@ client.on('message', async function (message) {
     } else {
       autoplayQueue = []
     }
+    fs.writeFile('config.json', JSON.stringify(settings), (error) => { if (error) throw error })
   } else if (message.content === 'toggle finish song') {
     finishSong = !finishSong
     displayQueue.push({ type: 'notification', request: message, message: '<@!' + message.author.id + '> Set finish song to ' + finishSong })
