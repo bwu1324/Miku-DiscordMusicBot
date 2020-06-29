@@ -276,7 +276,7 @@ function search (page, request) {
           )
           .setThumbnail(results.items[i].thumbnail)
         if (i === (page - 1) * 5) {
-          newMessage.setTitle('Search Results for', results.query)
+          newMessage.setTitle('Search Results for' + results.query)
         }
         if (i === upTo - 1) {
           newMessage.setFooter('Page ' + page + ' out of ' + pages)
@@ -311,6 +311,15 @@ function search (page, request) {
                 .then(() => message.react('3️⃣'))
                 .then(() => message.react('4️⃣'))
                 .then(() => message.react('5️⃣'))
+                .then(() => message.react('❌'))
+                .then(() => searchAwaitReact())
+            } else if (pages !== 1) {
+              message.react('⬅')
+                .then(() => message.react('1️⃣'))
+                .then(() => { if (upTo >= (page - 1) * 5 + 2) { message.react('2️⃣') } })
+                .then(() => { if (upTo >= (page - 1) * 5 + 3) { message.react('3️⃣') } })
+                .then(() => { if (upTo >= (page - 1) * 5 + 4) { message.react('4️⃣') } })
+                .then(() => { if (upTo >= (page - 1) * 5 + 5) { message.react('5️⃣') } })
                 .then(() => message.react('❌'))
                 .then(() => searchAwaitReact())
             } else {
