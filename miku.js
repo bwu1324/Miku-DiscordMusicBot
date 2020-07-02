@@ -242,7 +242,7 @@ function upDateNowPlaying (newMessage, request) {
           paused = false
           displayQueue.push({ type: 'nowPlaying', request: nowPlaying.message })
         } else if (reaction.emoji.name === '⏸') {
-          dispatcher.pause()
+          dispatcher.pause(true)
           paused = true
           displayQueue.push({ type: 'nowPlaying', request: nowPlaying.message })
         } else if (reaction.emoji.name === '⏭') {
@@ -672,7 +672,7 @@ client.on('message', async function (message) {
     if (!dispatcher) {
       displayQueue.push({ type: 'error', request: message, message: '<@!' + message.author.id + '> There\'s nothing to pause' })
     } else {
-      dispatcher.pause()
+      dispatcher.pause(true)
       paused = true
       displayQueue.push({ type: 'nowPlaying', request: message })
     }
