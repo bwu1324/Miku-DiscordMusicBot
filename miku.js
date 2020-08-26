@@ -770,10 +770,14 @@ client.on('message', async function (message) {
       paused = true
       sendUI()
     }
+  } else if (message.content === 'repeat 0') {
+    if (nowPlaying) {
+      repeatSong = 0
+      sendUI()
+    } else { sendError('<@!' + message.author.id + '> Nothing to repeat') }
   } else if (message.content.startsWith('repeat ')) {
     if (nowPlaying) {
       var times = parseInt(message.content.replace('repeat ', ''))
-      if (message.content === 'repeat 0') { times = 0 }
       if (!times) { sendError('<@!' + message.author.id + '> That was not an integer') }
       else {
         repeatSong = times
