@@ -398,7 +398,6 @@ function player (play) {
     timeout += 100
     if (change !== 'error') {
       avgVol = (avgVol * 2 + change) / 3
-      console.log(avgVol)
       if (avgVol > 3) { avgVol = 3 }
       if (dispatcher) { dispatcher.setVolume(avgVol) }
     }
