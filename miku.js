@@ -251,7 +251,7 @@ function createQueueMessage () {
     let queueMessage = ''
     for (let i = (showQueuePage - 1) * 20; i < showQueuePage * 20; i++) {
       if (i < queue.length && !finishSong) {
-        queueMessage = queueMessage.concat('\n', i + 1, '. ', queue[i].title, ' [', queue[i].message.author.username + ']')
+        queueMessage = queueMessage.concat('\n', i + 1, '. ', queue[i].title, ' [', queue[i].id + ']')
       } else if (autoplay && i - queue.length < autoplayQueue.length && !finishQueue) {
         queueMessage = queueMessage.concat('\n', i + 1, '. ', autoplayQueue[i - queue.length].title, ' [autoplay]')
       }
