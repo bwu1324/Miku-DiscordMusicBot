@@ -376,10 +376,10 @@ function player (play) {
     stream = fs.createReadStream('./autoplay/' + play.fileName)
   } else if (play.live) {
     stream = ytdl(play.link, { quality: [91, 92, 93, 94, 95] })
+    playerTimeout = setTimeout(() => { playNext() }, 21590000)
   } else {
     stream = ytdl(play.link, { filters: 'audioonly' })
   }
-  playerTimeout = setTimeout(() => { playNext() }, 21590000)
   var buffers = []
   var started = false
   var timeout = 3000
@@ -420,6 +420,7 @@ var autostopTimeout = undefined
 function playNext () {
   sample.kill('SIGKILL')
   sample = fork ('sample.js')
+  if (autoplay && autoplayQueue.length < 10) { autoplayInit() }
   if (dispatcher) { dispatcher.destroy() }
   if (repeatSong === 0) {
     nowPlaying = undefined
