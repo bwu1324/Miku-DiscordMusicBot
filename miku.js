@@ -397,8 +397,7 @@ function player (play) {
   sample.on('message', (change) => {
     timeout += 100
     if (change !== 'error') {
-      avgVol = (avgVol * 2 + change) / 3
-      if (avgVol > 3) { avgVol = 3 }
+      avgVol = (avgVol + change) / 2
       if (dispatcher) { dispatcher.setVolume(avgVol) }
     }
     var buffer = Buffer.concat(buffers)
@@ -722,10 +721,17 @@ client.on('message', async function (message) {
   message.content.toLowerCase()
   if (message.author.bot) return
   if (!message.content.startsWith(settings.prefix.toLowerCase())) return
-  if (message.content.startsWith(settings.prefix.toLowerCase())) {
+
+  //if (message.author.id === '597908160677806080' || message.author.id === '315656771194585090') {
+  //  sendError('WATCH LIZ AND THE BLUE BIRD!')
+  //  message.delete()
+  //  return
+  //}
+
+  if (message.content.startsWith(settings.prefix.toLowerCase()) && message.channel.id === settings.channelID) {
     message.delete()
     message.content = message.content.replace(settings.prefix, '')
-  }
+  } else if (message.channel.id !== settings.channelID) { return }
   if (message.content === 'set channel') {
     settings.channelID = message.channel.id
     fs.writeFile('config.json', JSON.stringify(settings), (error) => { if (error) throw error })
@@ -733,8 +739,6 @@ client.on('message', async function (message) {
     sendUI()
   } else if (!settings.channelID) {
     sendError('Do "' + settings.prefix + 'set channel" then restart the bot!', message.channel)
-  } else if (settings.channelID !== message.channel.id) {
-    sendError('<@!' + message.author.id + '> Please use <#' + settings.channelID + '> to send commands to this bot', message.channel)
   } else if (message.content === 'join') { joinVoice(message) }
   else if (message.content.startsWith('play ') || message.content.startsWith('search ')) {
     message.content = message.content.replace('play ', '')
