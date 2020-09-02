@@ -373,19 +373,15 @@ function player (play) {
   clearTimeout(playerTimeout)
   var stream = undefined
   var durationArray = play.duration.split(':')
-  var duration = 1000
-  for (let i = durationArray.length - 1; i >= 0; i--) {
-    duration += parseInt(durationArray[i]) * 1000 * 60**(durationArray.length - i - 1)
-  }
-  if (durationArray.length === 0) {
-    duration = 21590000
-  }
   if (play.fileName) {
     stream = fs.createReadStream('./autoplay/' + play.fileName)
+    dispatcher = connection.play(fs.createReadStream('./autoplay/' + play.fileName), { volume: 0.25 })
   } else if (play.live) {
     stream = ytdl(play.link, { quality: [91, 92, 93, 94, 95] })
+    dispatcher = connection.play(ytdl(play.link, { quality: [91, 92, 93, 94, 95] }), { volume: 0.25 })
   } else {
     stream = ytdl(play.link, { filters: 'audioonly' })
+    dispatcher = connection.play(ytdl(play.link, { filters: 'audioonly' }), { volume: 0.25 })
   }
   var buffers = []
   var started = false
@@ -412,11 +408,12 @@ function player (play) {
       sample.send(timeout)
     })
   })
-  dispatcher = connection.play(stream, { volume: 0.25 })
   dispatcher.on('start', () => {
     paused = false
     sendUI()
-    playerTimeout = setTimeout(() => { playNext() }, duration)
+  })
+  dispatcher.on('finish', () => {
+    playNext()
   })
 }
 
