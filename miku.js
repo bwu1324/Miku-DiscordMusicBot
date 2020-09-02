@@ -416,8 +416,8 @@ function player (play) {
   dispatcher.on('start', () => {
     paused = false
     sendUI()
+    playerTimeout = setTimeout(() => { playNext() }, duration)
   })
-  playerTimeout = setTimeout(() => { playNext() }, duration)
 }
 
 var autostopTimeout = undefined
@@ -894,4 +894,3 @@ client.on('message', async function (message) {
     sendError('<@!' + message.author.id + '> That is not a valid command. Type "' + settings.prefix + 'help" to show the list of avaliable commands.')
   }
 })
-
