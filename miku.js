@@ -372,11 +372,18 @@ function player (play) {
   clearTimeout(autostopTimeout)
   clearTimeout(playerTimeout)
   var stream = undefined
+  var durationArray = play.duration.split(':')
+  var duration = 1000
+  for (let i = durationArray.length - 1; i >= 0; i--) {
+    duration += parseInt(durationArray[i]) * 1000 * 60**(durationArray.length - i - 1)
+  }
+  if (durationArray.length === 0) {
+    duration = 21590000
+  }
   if (play.fileName) {
     stream = fs.createReadStream('./autoplay/' + play.fileName)
   } else if (play.live) {
     stream = ytdl(play.link, { quality: [91, 92, 93, 94, 95] })
-    playerTimeout = setTimeout(() => { playNext() }, 21590000)
   } else {
     stream = ytdl(play.link, { filters: 'audioonly' })
   }
@@ -410,9 +417,7 @@ function player (play) {
     paused = false
     sendUI()
   })
-  dispatcher.on('finish', () => {
-    playNext()
-  })
+  playerTimeout = setTimeout(() => { playNext() }, duration)
 }
 
 var autostopTimeout = undefined
@@ -721,13 +726,6 @@ client.on('message', async function (message) {
   message.content.toLowerCase()
   if (message.author.bot) return
   if (!message.content.startsWith(settings.prefix.toLowerCase())) return
-
-  //if (message.author.id === '597908160677806080' || message.author.id === '315656771194585090') {
-  //  sendError('WATCH LIZ AND THE BLUE BIRD!')
-  //  message.delete()
-  //  return
-  //}
-
   if (message.content.startsWith(settings.prefix.toLowerCase()) && message.channel.id === settings.channelID) {
     message.delete()
     message.content = message.content.replace(settings.prefix, '')
@@ -896,3 +894,4 @@ client.on('message', async function (message) {
     sendError('<@!' + message.author.id + '> That is not a valid command. Type "' + settings.prefix + 'help" to show the list of avaliable commands.')
   }
 })
+
