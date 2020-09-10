@@ -25,9 +25,9 @@ process.on('message', (msg) => {
       	if (max === 0.0) {
       	  volume = 'error'
       	} else {
-      	  volume = 0.25 / max
+      	  volume = 0.25 / (max - 0.09)
       	}
-        if (pcmdata.length > 441000) { process.send(volume) }
+        if (pcmdata.length > 132300) { process.send(volume) }
         else { process.send('error') }
       } else {
       	process.send('error')

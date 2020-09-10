@@ -381,7 +381,7 @@ var playerStart
 var playerTimeoutValue = 0
 var playerTimeout = undefined
 function player (play) {
-  var playerTimeoutValue = 0
+  playerTimeoutValue = 0
   var temp = play.duration.split(':')
   for (let i = temp.length; i > 0; i--) {
     playerTimeoutValue += parseInt(temp[i - 1]) * 1000 * 60**(temp.length - i)
@@ -401,7 +401,7 @@ function player (play) {
   var buffers = []
   var started = false
   var timeout = 3000
-  var avgVol = 0.25
+  var lastVol = 0.25
   stream.on('data', (data) => {
     buffers.push(data)
     if (!started && !play.live) {
@@ -413,12 +413,10 @@ function player (play) {
     }
   })
   sample.on('message', (change) => {
-    sample.kill('SIGKILL')
-    sample = fork ('sample.js')
     timeout += 100
     if (change !== 'error') {
-      avgVol = (avgVol + change) / 2
-      if (dispatcher) { dispatcher.setVolume(avgVol) }
+      if (dispatcher) { dispatcher.setVolume((lastVol + change) / 2) }
+      lastVol = change
     }
     var buffer = Buffer.concat(buffers)
     fs.writeFile('./temp', buffer, function() {
