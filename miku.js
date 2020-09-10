@@ -381,6 +381,7 @@ var playerStart
 var playerTimeoutValue = 0
 var playerTimeout = undefined
 function player (play) {
+  var playerTimeoutValue = 0
   var temp = play.duration.split(':')
   for (let i = temp.length; i > 0; i--) {
     playerTimeoutValue += parseInt(temp[i - 1]) * 1000 * 60**(temp.length - i)
