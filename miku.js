@@ -25,12 +25,12 @@ var channel
 
 const { fork } = require('child_process')
 var sample = fork('sample.js')
-setInterval(() => {
+/*setInterval(() => {
   sample.kill('SIGCONT')
   setTimeout(() => {
     sample.kill('SIGSTOP')
   }, 15)
-}, 100)
+}, 100)*/
 
 function autoplayInit () {
   return new Promise((resolve) => {
@@ -93,8 +93,18 @@ uiReact.on('react', (message) => {
     uiReact.emit('react', message)
     if (reaction.emoji.name === '⏯') {
       if (dispatcher) {
-        if (paused) { dispatcher.resume() }
-        else { dispatcher.pause(true) }
+        if (paused) {
+          dispatcher.resume()
+          playerStart = Date.now()
+          playerTimeout = setTimeout(() => {
+            playNext()
+          }, playerTimeoutValue)
+        }
+        else {
+          dispatcher.pause(true)
+          playerTimeoutValue = playerTimeoutValue - (Date.now() - playerStart)
+          clearTimeout(playerTimeout)
+        }
         paused = !paused
         sendUI()
       }
@@ -367,22 +377,26 @@ async function joinVoice (message) {
   }
 }
 
+var playerStart
+var playerTimeoutValue = 0
 var playerTimeout = undefined
 function player (play) {
+  var temp = play.duration.split(':')
+  for (let i = temp.length; i > 0; i--) {
+    playerTimeoutValue += parseInt(temp[i - 1]) * 1000 * 60**(temp.length - i)
+  }
   clearTimeout(autostopTimeout)
   clearTimeout(playerTimeout)
   var stream = undefined
-  var durationArray = play.duration.split(':')
   if (play.fileName) {
     stream = fs.createReadStream('./autoplay/' + play.fileName)
-    dispatcher = connection.play(fs.createReadStream('./autoplay/' + play.fileName), { volume: 0.25 })
   } else if (play.live) {
     stream = ytdl(play.link, { quality: [91, 92, 93, 94, 95] })
-    dispatcher = connection.play(ytdl(play.link, { quality: [91, 92, 93, 94, 95] }), { volume: 0.25 })
+    total = 21590000
   } else {
     stream = ytdl(play.link, { filters: 'audioonly' })
-    dispatcher = connection.play(ytdl(play.link, { filters: 'audioonly' }), { volume: 0.25 })
   }
+  dispatcher = connection.play(stream, { volume: 0.25 })
   var buffers = []
   var started = false
   var timeout = 3000
@@ -398,6 +412,8 @@ function player (play) {
     }
   })
   sample.on('message', (change) => {
+    sample.kill('SIGKILL')
+    sample = fork ('sample.js')
     timeout += 100
     if (change !== 'error') {
       avgVol = (avgVol + change) / 2
@@ -409,11 +425,12 @@ function player (play) {
     })
   })
   dispatcher.on('start', () => {
+    playerStart = Date.now()
+    playerTimeout = setTimeout(() => {
+      playNext()
+    }, playerTimeoutValue)
     paused = false
     sendUI()
-  })
-  dispatcher.on('finish', () => {
-    playNext()
   })
 }
 
@@ -508,63 +525,37 @@ async function searchYT (search, results) {
   }
 }
 
-async function searchAutoplay (search, results) {
-  let upto = 5
-  if (results.items.length < 6) { upto = results.items.length }
-  const ytResults = []
-  if (results) {
-    for (let i = 0; i < upto; i++) {
-      let temp = results.items[i].title.split(' ')
-      for (let j = 0; j < temp.length; j++) {
-        if (temp[j].length > 2) { ytResults.push(temp[j]) }
-      }
-    }
+async function searchAutoplay (searching) {
+  var search = []
+  var short = []
+  var searching = searching.split(' ')
+  for (let i = 0; i < searching.length; i++) {
+    if (searching[i].length >= 3) { search.push(searching[i]) }
+    else { short.push(searching[i]) }
   }
-  search = search.split(' ')
   let max = 0
-  let result = undefined
+  let results = []
   for (let i = 0; i < autoplayList.length; i++) {
     let currentScore = 0
-    let temp = autoplayList[i].title.split(' ')
+    let current = autoplayList[i].title.split(' ')
     let found = false
-    let current = []
-    let repeats = []
-    for (let x = 0; x < temp.length; x++) {
-      for (let y = 0; y < current.length; y++) {
-        if (current[y] === temp[x])
-        found = true
-      }
-      if (!found) {
-        current.push(removeSpecial(temp[x]))
-      } else {
-        repeats.push(removeSpecial(temp[x]))
-      }
-    }
-
-    for (let j = 0; j < search.length; j++) {
-      for (let k = 0; k < current.length; k++) {
-        if (search[j].toUpperCase() === current[k].toUpperCase()) {
-          currentScore += 5
+    for (let j = 0; j < current.length; j++) {
+      for (let n = 0; n < search.length; n++) {
+        if (removeSpecial(search[n].toUpperCase()) === removeSpecial(current[j].toUpperCase())) {
+          currentScore += 3
         }
       }
-      for (let l = 0; l < repeats.length; l++) {
-        if (search[j].toUpperCase() === repeats[l].toUpperCase()) {
+      for (let m = 0; m < short.length; m++) {
+        if (removeSpecial(short[m].toUpperCase()) === removeSpecial(current[j].toUpperCase())) {
           currentScore += 1
         }
       }
-      for (let m = 0; m < ytResults.length; m++) {
-        if (search[j].toUpperCase() === ytResults[m].toUpperCase()) {
-          currentScore += 2
-        }
-      }
     }
-    if (currentScore > max) {
-      max = currentScore
-      result = autoplayList[i]
-    }
+    autoplayList[i].score = currentScore
+    if (currentScore > 0) { results.push(autoplayList[i]) }
   }
-  if (max > 15) { return result }
-  else { return }
+  results = results.sort(function(a, b){return b.score - a.score})
+  return results
 }
 
 function isNumber (text) {
@@ -593,6 +584,7 @@ function removeSpecial (text) {
 var searchMessage = new Promise (function (resolve) { resolve({ deleted: true }) })
 var searchResults = { items: [] }
 var searchPage = 1
+var ytPage = 0
 const searchReact = new events.EventEmitter()
 var searchTimeout = setTimeout(() => {}, 60000)
 clearTimeout(searchTimeout)
@@ -629,6 +621,12 @@ searchReact.on('react', (message) => {
       searchResults.items[searchPage - 1].id = '<@!' + searchResults.request.author.id + '>'
       queuer(searchResults.request, searchResults.items[searchPage - 1])
       searchMessage.then((message) => { if (!message.deleted) { message.delete() } })
+    } else if (reaction.emoji.name === '⏭') {
+      if (searchResults.items.length > ytPage + 1) {
+        searchPage = ytPage + 1
+        message.edit(createSearchMessage())
+      } else { message.edit(createSearchMessage(true))}
+      searchReact.emit('react', message)
     }
   })
 })
@@ -642,8 +640,11 @@ function search (search, request) {
     searchTimeout = setTimeout(function () { searchMessage.then((message) => { if (!message.deleted) { message.delete() } }) }, 60000)
     const ytResult = await searchYT(search, 20)
     const autoplayResult = await searchAutoplay(search, ytResult)
-    if (autoplayResult) { searchResults.items.push(autoplayResult) }
-    for (let i = 0; i <ytResult.items.length; i++) { searchResults.items.push(ytResult.items[i]) }
+    if (autoplayResult) {
+      ytPage = autoplayResult.length
+      for (let i = 0; i < autoplayResult.length; i++) { searchResults.items.push(autoplayResult[i]) }
+    }
+    if (ytResult) { for (let i = 0; i < ytResult.items.length; i++) { searchResults.items.push(ytResult.items[i]) } }
     searchPage = 1
     if (!message.deleted) {
       message.edit(createSearchMessage())
@@ -654,6 +655,7 @@ function search (search, request) {
           message.react('⬅')
             .then(() => message.react('☑'))
             .then(() => message.react('➡'))
+            .then(() => message.react('⏭'))
             .then(() => message.react('❌'))
             .then(() => resolve(message))
             .catch(() => resolve(message))
@@ -663,9 +665,9 @@ function search (search, request) {
   })
 }
 
-function createSearchMessage () {
+function createSearchMessage (notFound) {
   let newMessage = undefined
-  if (searchResults.items.length > 0) {
+  if (searchResults.items.length > 0 && !notFound) {
     if (!searchResults.items[searchPage - 1].duration) { searchResults.items[searchPage - 1].duration = 'live' }
     if (!searchResults.items[searchPage - 1].fileName) {
       newMessage = {
@@ -716,7 +718,7 @@ client.login(settings.token)
 client.once('ready', async function () {
   console.log('Ready!')
   channel = await client.channels.cache.get(settings.channelID)
-  sendUI()
+  try { sendUI() } catch { console.log('set a channel!')}
 })
 
 client.on('message', async function (message) {
@@ -752,6 +754,10 @@ client.on('message', async function (message) {
     } else {
       paused = false
       dispatcher.resume()
+      playerStart = Date.now()
+      playerTimeout = setTimeout(() => {
+        playNext()
+      }, playerTimeoutValue)
       sendUI()
     }
   } else if (message.content === 'skip' || message.content === 'next') {
@@ -765,8 +771,10 @@ client.on('message', async function (message) {
       sendError('<@!' + message.author.id + '> There\'s nothing to pause')
     } else if (nowPlaying.live) {
       sendError('<@!' + message.author.id + '> Live videos cannot be paused')
-    } else {
+    } else if (!paused) {
       dispatcher.pause(true)
+      playerTimeoutValue = playerTimeoutValue - (Date.now() - playerStart)
+      clearTimeout(playerTimeout)
       paused = true
       sendUI()
     }
