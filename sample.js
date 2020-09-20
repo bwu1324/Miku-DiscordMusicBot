@@ -4,7 +4,7 @@ context = new AudioContext
 var exec = require('child_process').exec;
 var _ = require('underscore');
 var timeout
-var lastLength = 0
+var lastLength = 132300
 process.on('message', (msg) => {
   clearTimeout(timeout)
   timeout = setTimeout(() => {
@@ -25,10 +25,9 @@ process.on('message', (msg) => {
       	if (max === 0.0) {
       	  volume = 'error'
       	} else {
-      	  volume = 0.25 / (max - 0.09)
+      	  volume = 0.25 / ((max + 0.1)**2)
       	}
-        if (pcmdata.length > 132300) { process.send(volume) }
-        else { process.send('error') }
+        process.send(volume)
       } else {
       	process.send('error')
       }

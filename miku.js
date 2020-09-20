@@ -381,7 +381,7 @@ var playerStart
 var playerTimeoutValue = 0
 var playerTimeout = undefined
 function player (play) {
-  playerTimeoutValue = 0
+  playerTimeoutValue = 100
   var temp = play.duration.split(':')
   for (let i = temp.length; i > 0; i--) {
     playerTimeoutValue += parseInt(temp[i - 1]) * 1000 * 60**(temp.length - i)
@@ -389,22 +389,36 @@ function player (play) {
   clearTimeout(autostopTimeout)
   clearTimeout(playerTimeout)
   var stream = undefined
+  var lastVol = undefined
+  var volFound = false
   if (play.fileName) {
+    for (let i = 0; i < settings.volumeData.length; i++) {
+      if (play.fileName === settings.volumeData[i].fileName) {
+        lastVol = settings.volumeData[i].volume
+        volFound = true
+      }
+    }
     stream = fs.createReadStream('./autoplay/' + play.fileName)
   } else if (play.live) {
     stream = ytdl(play.link, { quality: [91, 92, 93, 94, 95] })
     total = 21590000
   } else {
+    for (let i = 0; i < settings.volumeData.length; i++) {
+      if (play.link === settings.volumeData[i].fileName) {
+        lastVol = settings.volumeData[i].volume
+        volFound = true
+      }
+    }
     stream = ytdl(play.link, { filters: 'audioonly' })
   }
-  dispatcher = connection.play(stream, { volume: 0.25 })
+  if (!lastVol) { lastVol = 0.25 }
+  dispatcher = connection.play(stream, { volume: lastVol })
   var buffers = []
   var started = false
   var timeout = 3000
-  var lastVol = 0.25
   stream.on('data', (data) => {
     buffers.push(data)
-    if (!started && !play.live) {
+    if (!started && !play.live && !volFound) {
       started = true
       var buffer = Buffer.concat(buffers)
       fs.writeFile('./temp', buffer, function() {
@@ -415,6 +429,7 @@ function player (play) {
   sample.on('message', (change) => {
     timeout += 100
     if (change !== 'error') {
+      lastVolChange = change
       if (dispatcher) { dispatcher.setVolume((lastVol + change) / 2) }
       lastVol = change
     }
@@ -426,6 +441,11 @@ function player (play) {
   dispatcher.on('start', () => {
     playerStart = Date.now()
     playerTimeout = setTimeout(() => {
+      if (!volFound) {
+        if (play.link) { settings.volumeData.push({ fileName: play.link, volume: lastVolChange }) }
+        else if (play.fileName) { settings.volumeData.push({ fileName: play.fileName, volume: lastVolChange }) }
+        fs.writeFile('config.json', JSON.stringify(settings), (error) => { if (error) throw error })
+      }
       playNext()
     }, playerTimeoutValue)
     paused = false
@@ -493,6 +513,7 @@ function queuer (message, song) {
 
 function stop () {
   sample.kill('SIGKILL')
+  clearTimeout(playerTimeout)
   showQueueMessage.then((message) => { if (!message.deleted) { message.delete() } })
   searchMessage.then((message) => { if (!message.deleted) { message.delete() } })
   notification.then((message) => { if (!message.deleted) { message.delete() } })
@@ -551,7 +572,7 @@ async function searchAutoplay (searching) {
       }
     }
     autoplayList[i].score = currentScore
-    if (currentScore > 0) { results.push(autoplayList[i]) }
+    if (currentScore > 2) { results.push(autoplayList[i]) }
   }
   results = results.sort(function(a, b){return b.score - a.score})
   return results
@@ -721,7 +742,7 @@ client.once('ready', async function () {
 })
 
 client.on('message', async function (message) {
-  message.content.toLowerCase()
+  message.content = message.content.toLowerCase()
   if (message.author.bot) return
   if (!message.content.startsWith(settings.prefix.toLowerCase())) return
   if (message.content.startsWith(settings.prefix.toLowerCase()) && message.channel.id === settings.channelID) {
