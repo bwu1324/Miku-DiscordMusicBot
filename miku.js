@@ -531,15 +531,16 @@ function stop () {
   sendUI()
 }
 
-async function searchYT (search, results) {
+async function searchYT (searchString, number) {
   try {
-    const filters = await ytsr.getFilters(search)
-    const filter = await filters.get('Type').find(o => o.name === 'Video')
-    const options = {
-      limit: results,
-      nextpageRef: filter.ref
+    const results = []
+    const search = await ytsr(searchString, { limit: number })
+    for (let i = 0; i < search.items.length; i++) {
+      if (search.items[i].type === 'video') {
+        results.push(search.items[i])
+      }
     }
-    return await ytsr(null, options)
+    return results
   } catch {
     return undefined
   }
@@ -664,7 +665,7 @@ function search (search, request) {
       ytPage = autoplayResult.length
       for (let i = 0; i < autoplayResult.length; i++) { searchResults.items.push(autoplayResult[i]) }
     }
-    if (ytResult) { for (let i = 0; i < ytResult.items.length; i++) { searchResults.items.push(ytResult.items[i]) } }
+    if (ytResult) { for (let i = 0; i < ytResult.length; i++) { searchResults.items.push(ytResult[i]) } }
     searchPage = 1
     if (!message.deleted) {
       message.edit(createSearchMessage())
